@@ -1,0 +1,14 @@
+data/
+runs/
+figures/
+meshes/
+*.pt
+*.stl
+*.nii.gz
+*.npy
+*.zip
+train_log.txt
+splits.json
+
+__pycache__/
+*.pyc

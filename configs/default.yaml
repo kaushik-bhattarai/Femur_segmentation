@@ -1,0 +1,48 @@
+seed: 42
+
+paths:
+  raw_dir: data/raw                           
+  processed_dir: data/processed
+  splits_file: splits.json                     
+  runs_dir: runs
+
+data:
+  num_cases: 80                 # number of usable patients to keep
+  split: [0.7, 0.15, 0.15]      
+  spacing_mm: 1.5               # isotropic resampling spacing
+  image_size: 320               # in-plane size after centre crop/pad (320 px * 1.5 mm = 480 mm FOV)
+  z_margin_slices: 20          
+  min_femur_extent_mm: 100      
+  hu_window: [-200, 1000]      
+
+model:
+  base_channels: 32             
+  depth: 4                    
+  norm: batch                  
+  upsample: transpose        
+
+train:
+  run_name: unet2d_base32
+  epochs: 40
+  samples_per_epoch: 6000       
+  batch_size: 8
+  lr: 0.001
+  weight_decay: 0.0001
+  neg_ratio: 0.2                
+  num_workers: 4               
+  amp: true                  
+  val_every: 2                  
+
+augment:
+  rotation_deg: 15
+  scale: [0.9, 1.1]
+  shift: 0.05                
+  flip_p: 0.5                   
+  noise_std: 0.01
+
+infer:
+  threshold: 0.5
+  tta_flip: false
+  batch_size: 16
+  keep_components: 2            
+  min_component_fraction: 0.1  
