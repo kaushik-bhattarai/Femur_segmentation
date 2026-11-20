@@ -1,0 +1,49 @@
+# Phase 2: 3D network from MONAI, trained on the SAME preprocessed data and the SAME splits.json as the 2D U-Net.
+# Run prepare_data first (configs/default.yaml). Override values with --opt section.key=value.
+seed: 42
+
+paths:
+  raw_dir: data/raw
+  processed_dir: data/processed        # same preprocessed volumes as the 2D model
+  splits_file: splits.json             # same patient split => the comparison is fair
+  runs_dir: runs
+
+data:
+  hu_window: [-200, 1000]
+
+model:
+  name: unet                           # unet | segresnet
+  # MONAI UNet (residual 3D U-Net)
+  channels: [16, 32, 64, 128, 256]
+  strides: [2, 2, 2, 2]
+  num_res_units: 2
+  norm: instance                       # instance norm: batch size is only 1-2 in 3D
+  # MONAI SegResNet (used when name: segresnet)
+  init_filters: 16
+  blocks_down: [1, 2, 2, 4]
+  blocks_up: [1, 1, 1]
+
+train:
+  run_name: unet3d_monai
+  epochs: 100
+  volumes_repeat: 4                    # each epoch visits every training volume this many times
+  batch_size: 1                        # volumes per step
+  patches_per_volume: 2                # random 3D patches per volume => 2 patches per step
+  patch_size: [96, 96, 96]             # (z, y, x) voxels = 144 mm cube at 1.5 mm
+  lr: 0.0002
+  weight_decay: 0.00001
+  num_workers: 4                       # set to 0 if you get DataLoader errors on Windows
+  amp: true
+  val_every: 5                         # sliding-window validation on full volumes every N epochs
+
+augment:
+  rotation_deg: 15
+  flip_p: 0.5
+  noise_std: 0.01
+
+infer:
+  threshold: 0.5
+  sw_batch_size: 2                     # patches per forward pass during sliding-window inference
+  overlap: 0.5
+  keep_components: 2
+  min_component_fraction: 0.1
